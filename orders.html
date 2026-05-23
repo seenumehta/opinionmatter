@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders — OpinionMatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .orders-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .add-order-btn {
+      padding: 0.9rem 1.5rem;
+      width: auto;
+    }
+
+    /* FILTER TABS */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .filter-tab {
+      padding: 0.6rem 1.2rem;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .filter-tab.active {
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }
+
+    /* ORDER CARD */
+    .order-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .order-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .order-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+
+    .order-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .order-price {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .order-status-badge {
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: rgba(255, 77, 0, 0.1);
+      color: #ff4d00;
+    }
+
+    .status-in-progress {
+      background: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+    }
+
+    .status-completed {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .status-cancelled {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    .order-description {
+      font-size: 0.9rem;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .order-footer {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-top: 1rem;
+      border-top: 1.5px solid var(--border);
+    }
+
+    .order-customer {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .order-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-left: auto;
+    }
+
+    .action-btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .action-btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .action-btn-primary:hover {
+      background: #e64200;
+      transform: translateY(-1px);
+    }
+
+    .action-btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+
+    .action-btn-secondary:hover {
+      background: rgba(255, 77, 0, 0.05);
+    }
+
+    .action-btn-danger {
+      background: transparent;
+      color: var(--error);
+      border: 1.5px solid var(--error);
+    }
+
+    .action-btn-danger:hover {
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        margin-left: 0;
+        margin-bottom: 60px;
+      }
+
+      .orders-header {
+        flex-direction: column;
+      }
+
+      .add-order-btn {
+        width: 100%;
+      }
+
+      .filter-tabs {
+        overflow-x: auto;
+        padding-bottom: 0.8rem;
+      }
+
+      .order-header {
+        flex-direction: column;
+      }
+
+      .order-actions {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .action-btn {
+        flex: 1;
+      }
+
+      .modal {
+        padding: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-badge">Free</div>
+      <div class="user-menu">
+        <div class="avatar" id="userAvatar">O</div>
+        <button class="btn-sm btn-secondary" onclick="handleSignOut()">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR (Desktop) -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link">
+        <span>🏠</span> Dashboard
+      </a>
+      <a href="reviews.html" class="sidebar-link">
+        <span>⭐</span> Reviews
+      </a>
+      <a href="analytics.html" class="sidebar-link">
+        <span>📊</span> Analytics
+      </a>
+      <a href="orders.html" class="sidebar-link active">
+        <span>📦</span> Orders
+      </a>
+      <a href="profile.html" class="sidebar-link">
+        <span>👤</span> Profile
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar">O</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">User</div>
+          <div class="sidebar-user-email" id="sidebarUserEmail">email@example.com</div>
+        </div>
+      </div>
+      <button class="btn-secondary" style="width: 100%; font-size: 0.8rem; padding: 0.6rem;" onclick="handleSignOut()">
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (Mobile) -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <a href="dashboard.html" class="bottom-nav-link" title="Dashboard">🏠</a>
+      <a href="reviews.html" class="bottom-nav-link" title="Reviews">⭐</a>
+      <a href="analytics.html" class="bottom-nav-link" title="Analytics">📊</a>
+      <a href="orders.html" class="bottom-nav-link active" title="Orders">📦</a>
+      <a href="profile.html" class="bottom-nav-link" title="Profile">👤</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1 class="page-title">Orders</h1>
+      <p class="page-subtitle">Manage customer orders and service requests</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="orders-header">
+      <h2 class="section-title">All Orders</h2>
+      <button class="btn add-order-btn" onclick="openAddOrderModal()">+ Add Order</button>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setActiveFilter('all')">All</button>
+      <button class="filter-tab" onclick="setActiveFilter('pending')">Pending</button>
+      <button class="filter-tab" onclick="setActiveFilter('in-progress')">In Progress</button>
+      <button class="filter-tab" onclick="setActiveFilter('completed')">Completed</button>
+      <button class="filter-tab" onclick="setActiveFilter('cancelled')">Cancelled</button>
+    </div>
+
+    <!-- ORDERS LIST -->
+    <div id="ordersList">
+      <!-- Orders will be loaded here -->
+    </div>
+  </main>
+
+  <!-- MODAL: ADD/EDIT ORDER -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeOrderModal()">×</button>
+      <h2 class="modal-header" id="modalTitle">Add Order</h2>
+
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="modalCustomerName" placeholder="e.g., John Smith" />
+      </div>
+
+      <div class="form-group">
+        <label>Service / Title</label>
+        <input type="text" id="modalTitle" placeholder="e.g., Website Redesign" />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="modalDescription" placeholder="Tell us about the service..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Price (₹)</label>
+        <input type="number" id="modalPrice" placeholder="e.g., 5000" />
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select id="modalStatus">
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeOrderModal()">Cancel</button>
+        <button class="btn" onclick="saveOrder()">Save Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    let userData = null;
+    let allOrders = [];
+    let currentFilter = 'all';
+    let editingOrderId = null;
+
+    /**
+     * Initialize page
+     */
+    async function initPage() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      userData = user;
+      updateUI();
+      loadOrders();
+    }
+
+    /**
+     * Update UI with user data
+     */
+    function updateUI() {
+      if (!userData) return;
+
+      const userName = userData.user_metadata?.name || userData.email.split('@')[0];
+      const userInitial = userName.charAt(0).toUpperCase();
+      const userAvatar = userData.user_metadata?.avatar_url;
+
+      if (userAvatar) {
+        document.getElementById('userAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+        document.getElementById('sidebarAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+      } else {
+        document.getElementById('userAvatar').textContent = userInitial;
+        document.getElementById('sidebarAvatar').textContent = userInitial;
+      }
+
+      document.getElementById('sidebarUserName').textContent = userName;
+      document.getElementById('sidebarUserEmail').textContent = userData.email;
+    }
+
+    /**
+     * Load orders from Supabase
+     */
+    async function loadOrders() {
+      try {
+        const userId = userData.profile.id;
+
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        allOrders = orders || [];
+        displayOrders();
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        showToast('Failed to load orders', 'error');
+      }
+    }
+
+    /**
+     * Display orders with filtering
+     */
+    function displayOrders() {
+      const list = document.getElementById('ordersList');
+      let filtered = allOrders;
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter((o) => o.status === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">📭</div>
+            <h3 style="font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.5rem;">No orders found</h3>
+            <p style="color: var(--muted); margin-bottom: 1.5rem;">Start by adding your first order to your business.</p>
+            <button class="btn" onclick="openAddOrderModal()" style="max-width: 200px;">Add Order</button>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = filtered.map((order, idx) => createOrderCard(order, idx)).join('');
+    }
+
+    /**
+     * Create HTML for order card
+     */
+    function createOrderCard(order, idx) {
+      const date = new Date(order.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+
+      const statusClass = `status-${order.status}`;
+      const price = order.price ? `₹${order.price.toLocaleString()}` : 'N/A';
+
+      return `
+        <div class="order-card" style="animation: fadeUp 0.5s ease both; animation-delay: ${idx * 0.05}s;">
+          <div class="order-header">
+            <div>
+              <div class="order-title">${order.title || 'Untitled Order'}</div>
+              <div class="order-meta">
+                <span>👤 ${order.customer_name}</span>
+                <span>📅 ${date}</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="order-price">${price}</div>
+              <div class="order-status-badge ${statusClass}">${order.status}</div>
+            </div>
+          </div>
+
+          <div class="order-description">${order.description || 'No description'}</div>
+
+          <div class="order-footer">
+            <span class="order-customer">Contact: ${order.customer_email || order.customer_phone || 'Not provided'}</span>
+            <div class="order-actions">
+              <button class="action-btn action-btn-primary" onclick="editOrder('${order.id}')">Edit</button>
+              <button class="action-btn action-btn-secondary" onclick="changeStatus('${order.id}')">Update Status</button>
+              <button class="action-btn action-btn-danger" onclick="deleteOrder('${order.id}')">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * Set active filter
+     */
+    function setActiveFilter(filter) {
+      currentFilter = filter;
+
+      document.querySelectorAll('.filter-tab').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      displayOrders();
+    }
+
+    /**
+     * Open add order modal
+     */
+    function openAddOrderModal() {
+      editingOrderId = null;
+      document.getElementById('modalTitle').textContent = 'Add Order';
+      document.getElementById('modalCustomerName').value = '';
+      document.getElementById('modalTitle').value = '';
+      document.getElementById('modalDescription').value = '';
+      document.getElementById('modalPrice').value = '';
+      document.getElementById('modalStatus').value = 'pending';
+      document.getElementById('orderModal').classList.add('show');
+    }
+
+    /**
+     * Edit order
+     */
+    function editOrder(orderId) {
+      const order = allOrders.find((o) => o.id === orderId);
+      if (!order) return;
+
+      editingOrderId = orderId;
+      document.getElementById('modalTitle').textContent = 'Edit Order';
+      document.getElementById('modalCustomerName').value = order.customer_name;
+      document.getElementById('modalTitle').value = order.title;
+      document.getElementById('modalDescription').value = order.description || '';
+      document.getElementById('modalPrice').value = order.price || '';
+      document.getElementById('modalStatus').value = order.status;
+      document.getElementById('orderModal').classList.add('show');
+    }
+
+    /**
+     * Close order modal
+     */
+    function closeOrderModal() {
+      document.getElementById('orderModal').classList.remove('show');
+      editingOrderId = null;
+    }
+
+    /**
+     * Save order
+     */
+    async function saveOrder() {
+      try {
+        const customerName = document.getElementById('modalCustomerName').value.trim();
+        const title = document.getElementById('modalTitle').value.trim();
+        const description = document.getElementById('modalDescription').value.trim();
+        const price = parseFloat(document.getElementById('modalPrice').value) || 0;
+        const status = document.getElementById('modalStatus').value;
+
+        if (!customerName || !title) {
+          showToast('Please fill in customer name and service title', 'error');
+          return;
+        }
+
+        const userId = userData.profile.id;
+
+        if (editingOrderId) {
+          // Update existing order
+          const { error } = await supabase
+            .from('orders')
+            .update({
+              customer_name: customerName,
+              title,
+              description,
+              price,
+              status,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', editingOrderId);
+
+          if (error) throw error;
+          showToast('✓ Order updated!', 'success');
+        } else {
+          // Create new order
+          const { error } = await supabase.from('orders').insert([
+            {
+              user_id: userId,
+              customer_name: customerName,
+              title,
+              description,
+              price,
+              status,
+            },
+          ]);
+
+          if (error) throw error;
+          showToast('✓ Order added!', 'success');
+        }
+
+        closeOrderModal();
+        loadOrders();
+      } catch (error) {
+        console.error('Error saving order:', error);
+        showToast('Failed to save order', 'error');
+      }
+    }
+
+    /**
+     * Change order status
+     */
+    function changeStatus(orderId) {
+      const order = allOrders.find((o) => o.id === orderId);
+      if (!order) return;
+
+      const statuses = ['pending', 'in-progress', 'completed', 'cancelled'];
+      const currentIdx = statuses.indexOf(order.status);
+      const nextStatus = statuses[(currentIdx + 1) % statuses.length];
+
+      updateOrderStatus(orderId, nextStatus);
+    }
+
+    /**
+     * Update order status
+     */
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        const { error } = await supabase
+          .from('orders')
+          .update({
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', orderId);
+
+        if (error) throw error;
+        showToast(`✓ Status updated to ${newStatus}!`, 'success');
+        loadOrders();
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        showToast('Failed to update status', 'error');
+      }
+    }
+
+    /**
+     * Delete order
+     */
+    async function deleteOrder(orderId) {
+      if (!confirm('Are you sure you want to delete this order?')) return;
+
+      try {
+        const { error } = await supabase.from('orders').delete().eq('id', orderId);
+
+        if (error) throw error;
+        showToast('✓ Order deleted!', 'success');
+        loadOrders();
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        showToast('Failed to delete order', 'error');
+      }
+    }
+
+    /**
+     * Handle sign out
+     */
+    async function handleSignOut() {
+      if (confirm('Are you sure you want to sign out?')) {
+        await signOut();
+      }
+    }
+
+    /**
+     * Show toast notification
+     */
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    window.showToast = showToast;
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', initPage);
+
+    // Close modal on outside click
+    document.getElementById('orderModal').addEventListener('click', (e) => {
+      if (e.target.id === 'orderModal') {
+        closeOrderModal();
+      }
+    });
+
+    // Close modal on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeOrderModal();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviews — OpinionMatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .reviews-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .search-bar {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.9rem 1.2rem 0.9rem 2.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .add-review-btn {
+      padding: 0.9rem 1.5rem;
+      width: auto;
+    }
+
+    /* FILTER TABS */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .filter-tab {
+      padding: 0.6rem 1.2rem;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .filter-tab.active {
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }
+
+    /* REVIEW CARD */
+    .review-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .review-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .review-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .review-avatar {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .review-meta {
+      flex: 1;
+    }
+
+    .review-name {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .review-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .review-stars {
+      display: inline-flex;
+      gap: 0.15rem;
+      font-size: 0.9rem;
+    }
+
+    .review-status {
+      margin-left: auto;
+      font-size: 0.75rem;
+    }
+
+    .review-body {
+      margin-bottom: 1rem;
+    }
+
+    .review-text {
+      font-size: 0.9rem;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .review-text.collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .expand-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .expand-btn:hover {
+      color: #e64200;
+    }
+
+    /* REPLY SECTION */
+    .reply-section {
+      background: var(--paper);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .reply-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .reply-text {
+      font-size: 0.9rem;
+      color: var(--ink);
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .reply-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .reply-form {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .reply-form textarea {
+      width: 100%;
+      padding: 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .reply-form-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .reply-form-actions .btn {
+      width: auto;
+      flex: 1;
+      padding: 0.7rem 1.2rem;
+      font-size: 0.85rem;
+    }
+
+    .review-footer {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .review-footer .badge {
+      font-size: 0.75rem;
+    }
+
+    .review-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-left: auto;
+    }
+
+    .action-btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .action-btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .action-btn-primary:hover {
+      background: #e64200;
+      transform: translateY(-1px);
+    }
+
+    .action-btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+
+    .action-btn-secondary:hover {
+      background: rgba(255, 77, 0, 0.05);
+    }
+
+    .generating-spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    /* MODAL FOR ADDING REVIEW */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        margin-left: 0;
+        margin-bottom: 60px;
+      }
+
+      .reviews-header {
+        flex-direction: column;
+      }
+
+      .search-bar {
+        min-width: auto;
+      }
+
+      .add-review-btn {
+        width: 100%;
+      }
+
+      .filter-tabs {
+        overflow-x: auto;
+        padding-bottom: 0.8rem;
+      }
+
+      .review-header {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .review-status {
+        margin-left: 0;
+      }
+
+      .review-actions {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .action-btn {
+        flex: 1;
+      }
+
+      .modal {
+        padding: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-badge">Free</div>
+      <div class="user-menu">
+        <div class="avatar" id="userAvatar">O</div>
+        <button class="btn-sm btn-secondary" onclick="handleSignOut()">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR (Desktop) -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link">
+        <span>🏠</span> Dashboard
+      </a>
+      <a href="reviews.html" class="sidebar-link active">
+        <span>⭐</span> Reviews
+      </a>
+      <a href="analytics.html" class="sidebar-link">
+        <span>📊</span> Analytics
+      </a>
+      <a href="orders.html" class="sidebar-link">
+        <span>📦</span> Orders
+      </a>
+      <a href="profile.html" class="sidebar-link">
+        <span>👤</span> Profile
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar">O</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">User</div>
+          <div class="sidebar-user-email" id="sidebarUserEmail">email@example.com</div>
+        </div>
+      </div>
+      <button class="btn-secondary" style="width: 100%; font-size: 0.8rem; padding: 0.6rem;" onclick="handleSignOut()">
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (Mobile) -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <a href="dashboard.html" class="bottom-nav-link" title="Dashboard">🏠</a>
+      <a href="reviews.html" class="bottom-nav-link active" title="Reviews">⭐</a>
+      <a href="analytics.html" class="bottom-nav-link" title="Analytics">📊</a>
+      <a href="orders.html" class="bottom-nav-link" title="Orders">📦</a>
+      <a href="profile.html" class="bottom-nav-link" title="Profile">👤</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1 class="page-title">Reviews</h1>
+      <p class="page-subtitle">AI-powered replies in one click</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="reviews-header">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by name or review text..." onkeyup="filterReviews()" />
+      </div>
+      <button class="btn add-review-btn" onclick="openAddReviewModal()">+ Add Review</button>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setActiveFilter('all')">All Reviews</button>
+      <button class="filter-tab" onclick="setActiveFilter('pending')">Pending Reply</button>
+      <button class="filter-tab" onclick="setActiveFilter('replied')">Replied</button>
+      <button class="filter-tab" onclick="setActiveFilter('positive')">Positive</button>
+      <button class="filter-tab" onclick="setActiveFilter('negative')">Negative</button>
+    </div>
+
+    <!-- REVIEWS LIST -->
+    <div id="reviewsList">
+      <!-- Reviews will be loaded here -->
+    </div>
+  </main>
+
+  <!-- MODAL: ADD REVIEW -->
+  <div class="modal-overlay" id="addReviewModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAddReviewModal()">×</button>
+      <h2 class="modal-header">Add Review</h2>
+
+      <div class="form-group">
+        <label>Reviewer Name</label>
+        <input type="text" id="modalReviewerName" placeholder="e.g., John Smith" />
+      </div>
+
+      <div class="form-group">
+        <label>Rating</label>
+        <select id="modalRating">
+          <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+          <option value="4">⭐⭐⭐⭐☆ 4 Stars</option>
+          <option value="3">⭐⭐⭐☆☆ 3 Stars</option>
+          <option value="2">⭐⭐☆☆☆ 2 Stars</option>
+          <option value="1">⭐☆☆☆☆ 1 Star</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Review Text</label>
+        <textarea id="modalReviewText" placeholder="What did the customer say?"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeAddReviewModal()">Cancel</button>
+        <button class="btn" onclick="saveManualReview()">Add Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/gemini.js"></script>
+
+  <script>
+    let userData = null;
+    let allReviews = [];
+    let currentFilter = 'all';
+    let currentSearchQuery = '';
+
+    /**
+     * Initialize page
+     */
+    async function initPage() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      userData = user;
+      updateUI();
+      loadReviews();
+    }
+
+    /**
+     * Update UI with user data
+     */
+    function updateUI() {
+      if (!userData) return;
+
+      const userName = userData.user_metadata?.name || userData.email.split('@')[0];
+      const userInitial = userName.charAt(0).toUpperCase();
+      const userAvatar = userData.user_metadata?.avatar_url;
+
+      if (userAvatar) {
+        document.getElementById('userAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+        document.getElementById('sidebarAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+      } else {
+        document.getElementById('userAvatar').textContent = userInitial;
+        document.getElementById('sidebarAvatar').textContent = userInitial;
+      }
+
+      document.getElementById('sidebarUserName').textContent = userName;
+      document.getElementById('sidebarUserEmail').textContent = userData.email;
+    }
+
+    /**
+     * Load reviews from Supabase
+     */
+    async function loadReviews() {
+      try {
+        const userId = userData.profile.id;
+
+        const { data: reviews, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        allReviews = reviews || [];
+        displayReviews(allReviews);
+      } catch (error) {
+        console.error('Error loading reviews:', error);
+        showToast('Failed to load reviews', 'error');
+      }
+    }
+
+    /**
+     * Display reviews with filtering and search
+     */
+    function displayReviews(reviews) {
+      const list = document.getElementById('reviewsList');
+      let filtered = reviews;
+
+      // Apply filter
+      if (currentFilter === 'pending') {
+        filtered = filtered.filter((r) => !r.reply);
+      } else if (currentFilter === 'replied') {
+        filtered = filtered.filter((r) => r.reply);
+      } else if (currentFilter === 'positive') {
+        filtered = filtered.filter((r) => r.sentiment === 'Positive');
+      } else if (currentFilter === 'negative') {
+        filtered = filtered.filter((r) => r.sentiment === 'Negative');
+      }
+
+      // Apply search
+      if (currentSearchQuery) {
+        const query = currentSearchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (r) =>
+            r.reviewer_name.toLowerCase().includes(query) ||
+            r.text?.toLowerCase().includes(query)
+        );
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">📭</div>
+            <h3 style="font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.5rem;">No reviews found</h3>
+            <p style="color: var(--muted); margin-bottom: 1.5rem;">Share your QR code to start collecting reviews or add one manually.</p>
+            <button class="btn" onclick="openAddReviewModal()" style="max-width: 200px;">Add Review</button>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = filtered
+        .map((review, idx) => createReviewCard(review, idx))
+        .join('');
+    }
+
+    /**
+     * Create HTML for review card
+     */
+    function createReviewCard(review, idx) {
+      const date = new Date(review.created_at);
+      const dateStr = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      const initial = review.reviewer_name.charAt(0).toUpperCase();
+      const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+      const sentimentClass =
+        review.sentiment === 'Positive' ? 'badge-success' : review.sentiment === 'Negative' ? 'badge-error' : 'badge-neutral';
+      const statusBadgeClass = review.reply ? 'badge-success' : 'badge-warning';
+      const statusText = review.reply ? 'Replied' : 'Pending';
+
+      let replyHTML = '';
+      if (review.reply) {
+        const replyDate = new Date(review.replied_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+        replyHTML = `
+          <div class="reply-section">
+            <div class="reply-label">Your Reply</div>
+            <div class="reply-text">${review.reply}</div>
+            <div class="reply-date">Replied on ${replyDate}</div>
+          </div>
+        `;
+      }
+
+      const actionButtons = review.reply
+        ? `<button class="action-btn action-btn-secondary" onclick="editReply('${review.id}')">Edit Reply</button>`
+        : `<button class="action-btn action-btn-primary" onclick="generateAIReply('${review.id}', '${review.text}', ${review.rating})">✨ Generate AI Reply</button>`;
+
+      return `
+        <div class="review-card" style="animation: fadeUp 0.5s ease both; animation-delay: ${idx * 0.05}s;">
+          <div class="review-header">
+            <div class="review-avatar">${initial}</div>
+            <div class="review-meta">
+              <div class="review-name">${review.reviewer_name}</div>
+              <div class="review-meta-row">
+                <div class="review-stars">${stars}</div>
+                <span>${dateStr}</span>
+              </div>
+            </div>
+            <div class="review-status">
+              <span class="badge ${sentimentClass}">${review.sentiment || 'Neutral'}</span>
+              <span class="badge ${statusBadgeClass}" style="margin-left: 0.5rem;">${statusText}</span>
+            </div>
+          </div>
+
+          <div class="review-body">
+            <div class="review-text" id="text-${review.id}">${review.text || 'No review text'}</div>
+          </div>
+
+          ${replyHTML}
+
+          <div class="review-footer">
+            ${actionButtons}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * Generate AI reply for a review
+     */
+    async function generateAIReply(reviewId, reviewText, rating) {
+      try {
+        const review = allReviews.find((r) => r.id === reviewId);
+        if (!review) return;
+
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="generating-spinner"></span>Generating...';
+
+        const businessName = userData.profile?.business_name || 'Our Business';
+        const generatedReply = await generateReviewReply(reviewText, rating, businessName);
+
+        // Show reply in editable form
+        showReplyForm(reviewId, generatedReply, btn);
+      } catch (error) {
+        console.error('Error generating reply:', error);
+        showToast('Failed to generate reply. Please try again.', 'error');
+        event.target.disabled = false;
+        event.target.innerHTML = '✨ Generate AI Reply';
+      }
+    }
+
+    /**
+     * Show reply form for editing/posting
+     */
+    function showReplyForm(reviewId, generatedReply, triggerBtn) {
+      const card = triggerBtn.closest('.review-card');
+      const footer = card.querySelector('.review-footer');
+
+      const form = document.createElement('div');
+      form.className = 'reply-form';
+      form.innerHTML = `
+        <textarea id="reply-textarea-${reviewId}" class="reply-textarea">${generatedReply}</textarea>
+        <div class="reply-form-actions">
+          <button class="btn btn-secondary" onclick="cancelReplyForm('${reviewId}')">Cancel</button>
+          <button class="btn btn-accent" onclick="postReply('${reviewId}')">Post Reply</button>
+          <button class="btn btn-secondary" onclick="regenerateReply('${reviewId}')">Regenerate</button>
+        </div>
+      `;
+
+      footer.innerHTML = '';
+      footer.appendChild(form);
+    }
+
+    /**
+     * Post reply to Supabase
+     */
+    async function postReply(reviewId) {
+      try {
+        const textarea = document.getElementById(`reply-textarea-${reviewId}`);
+        const replyText = textarea.value.trim();
+
+        if (!replyText) {
+          showToast('Reply cannot be empty', 'error');
+          return;
+        }
+
+        const btn = event.target;
+        btn.disabled = true;
+
+        const { error } = await supabase
+          .from('reviews')
+          .update({
+            reply: replyText,
+            replied_at: new Date().toISOString(),
+          })
+          .eq('id', reviewId);
+
+        if (error) throw error;
+
+        showToast('✓ Reply posted!', 'success');
+        loadReviews();
+      } catch (error) {
+        console.error('Error posting reply:', error);
+        showToast('Failed to post reply', 'error');
+        event.target.disabled = false;
+      }
+    }
+
+    /**
+     * Cancel reply form
+     */
+    function cancelReplyForm(reviewId) {
+      loadReviews();
+    }
+
+    /**
+     * Regenerate AI reply
+     */
+    async function regenerateReply(reviewId) {
+      const review = allReviews.find((r) => r.id === reviewId);
+      if (review) {
+        await generateAIReply(reviewId, review.text, review.rating);
+      }
+    }
+
+    /**
+     * Edit existing reply
+     */
+    function editReply(reviewId) {
+      const review = allReviews.find((r) => r.id === reviewId);
+      if (!review) return;
+
+      const card = document.querySelector(`[data-review-id="${reviewId}"]`);
+      const footer = event.target.closest('.review-footer');
+
+      const form = document.createElement('div');
+      form.className = 'reply-form';
+      form.innerHTML = `
+        <textarea id="reply-textarea-${reviewId}" class="reply-textarea">${review.reply}</textarea>
+        <div class="reply-form-actions">
+          <button class="btn btn-secondary" onclick="cancelReplyForm('${reviewId}')">Cancel</button>
+          <button class="btn btn-accent" onclick="postReply('${reviewId}')">Update Reply</button>
+        </div>
+      `;
+
+      footer.innerHTML = '';
+      footer.appendChild(form);
+    }
+
+    /**
+     * Set active filter
+     */
+    function setActiveFilter(filter) {
+      currentFilter = filter;
+
+      document.querySelectorAll('.filter-tab').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      displayReviews(allReviews);
+    }
+
+    /**
+     * Filter reviews by search
+     */
+    function filterReviews() {
+      currentSearchQuery = document.getElementById('searchInput').value;
+      displayReviews(allReviews);
+    }
+
+    /**
+     * Open add review modal
+     */
+    function openAddReviewModal() {
+      document.getElementById('addReviewModal').classList.add('show');
+    }
+
+    /**
+     * Close add review modal
+     */
+    function closeAddReviewModal() {
+      document.getElementById('addReviewModal').classList.remove('show');
+      document.getElementById('modalReviewerName').value = '';
+      document.getElementById('modalRating').value = '5';
+      document.getElementById('modalReviewText').value = '';
+    }
+
+    /**
+     * Save manually added review
+     */
+    async function saveManualReview() {
+      try {
+        const name = document.getElementById('modalReviewerName').value.trim();
+        const rating = parseInt(document.getElementById('modalRating').value);
+        const text = document.getElementById('modalReviewText').value.trim();
+
+        if (!name || !text) {
+          showToast('Please fill in all fields', 'error');
+          return;
+        }
+
+        const userId = userData.profile.id;
+        const sentiment = await analyzeSentiment(text);
+
+        const { error } = await supabase.from('reviews').insert([
+          {
+            user_id: userId,
+            reviewer_name: name,
+            rating,
+            text,
+            sentiment,
+            source: 'manual',
+          },
+        ]);
+
+        if (error) throw error;
+
+        showToast('✓ Review added!', 'success');
+        closeAddReviewModal();
+        loadReviews();
+      } catch (error) {
+        console.error('Error adding review:', error);
+        showToast('Failed to add review', 'error');
+      }
+    }
+
+    /**
+     * Handle sign out
+     */
+    async function handleSignOut() {
+      if (confirm('Are you sure you want to sign out?')) {
+        await signOut();
+      }
+    }
+
+    /**
+     * Show toast notification
+     */
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    window.showToast = showToast;
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', initPage);
+
+    // Close modal on outside click
+    document.getElementById('addReviewModal').addEventListener('click', (e) => {
+      if (e.target.id === 'addReviewModal') {
+        closeAddReviewModal();
+      }
+    });
+
+    // Close modal on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAddReviewModal();
+      }
+    });
+  </script>
+</body>
+</html>

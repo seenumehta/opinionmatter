@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics — OpinionMatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-box-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-box-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .charts-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .chart-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06);
+    }
+
+    .chart-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 1rem;
+    }
+
+    .chart-legend {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        margin-left: 0;
+        margin-bottom: 60px;
+      }
+
+      .charts-section {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-container {
+        height: 250px;
+      }
+
+      .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .stat-box {
+        padding: 1.2rem;
+      }
+
+      .stat-box-value {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-badge">Free</div>
+      <div class="user-menu">
+        <div class="avatar" id="userAvatar">O</div>
+        <button class="btn-sm btn-secondary" onclick="handleSignOut()">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR (Desktop) -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link">
+        <span>🏠</span> Dashboard
+      </a>
+      <a href="reviews.html" class="sidebar-link">
+        <span>⭐</span> Reviews
+      </a>
+      <a href="analytics.html" class="sidebar-link active">
+        <span>📊</span> Analytics
+      </a>
+      <a href="orders.html" class="sidebar-link">
+        <span>📦</span> Orders
+      </a>
+      <a href="profile.html" class="sidebar-link">
+        <span>👤</span> Profile
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar">O</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">User</div>
+          <div class="sidebar-user-email" id="sidebarUserEmail">email@example.com</div>
+        </div>
+      </div>
+      <button class="btn-secondary" style="width: 100%; font-size: 0.8rem; padding: 0.6rem;" onclick="handleSignOut()">
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (Mobile) -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <a href="dashboard.html" class="bottom-nav-link" title="Dashboard">🏠</a>
+      <a href="reviews.html" class="bottom-nav-link" title="Reviews">⭐</a>
+      <a href="analytics.html" class="bottom-nav-link active" title="Analytics">📊</a>
+      <a href="orders.html" class="bottom-nav-link" title="Orders">📦</a>
+      <a href="profile.html" class="bottom-nav-link" title="Profile">👤</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-subtitle">Your review performance & trends</p>
+    </div>
+
+    <!-- SUMMARY STATS -->
+    <div class="analytics-grid" id="summaryStats">
+      <div class="stat-box">
+        <div class="stat-box-value" id="totalReviewsStat">0</div>
+        <div class="stat-box-label">Total Reviews</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-value" id="avgRatingStat">0</div>
+        <div class="stat-box-label">Avg Rating</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-value" id="replyRateStat">0%</div>
+        <div class="stat-box-label">Reply Rate</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-value" id="monthlyReviewsStat">0</div>
+        <div class="stat-box-label">This Month</div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-section">
+      <!-- Reviews Per Month -->
+      <div class="chart-card">
+        <h3 class="chart-title">📈 Reviews Per Month</h3>
+        <div class="chart-container">
+          <canvas id="reviewsPerMonthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Sentiment Distribution -->
+      <div class="chart-card">
+        <h3 class="chart-title">😊 Sentiment Breakdown</h3>
+        <div class="chart-container">
+          <canvas id="sentimentChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Average Rating Trend -->
+      <div class="chart-card">
+        <h3 class="chart-title">⭐ Rating Trend</h3>
+        <div class="chart-container">
+          <canvas id="ratingTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Rating Distribution -->
+      <div class="chart-card">
+        <h3 class="chart-title">⭐ Rating Distribution</h3>
+        <div class="chart-container">
+          <canvas id="ratingDistributionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    let userData = null;
+    let allReviews = [];
+    let charts = {};
+
+    /**
+     * Initialize page
+     */
+    async function initPage() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      userData = user;
+      updateUI();
+      loadAnalyticsData();
+    }
+
+    /**
+     * Update UI with user data
+     */
+    function updateUI() {
+      if (!userData) return;
+
+      const userName = userData.user_metadata?.name || userData.email.split('@')[0];
+      const userInitial = userName.charAt(0).toUpperCase();
+      const userAvatar = userData.user_metadata?.avatar_url;
+
+      if (userAvatar) {
+        document.getElementById('userAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+        document.getElementById('sidebarAvatar').innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+      } else {
+        document.getElementById('userAvatar').textContent = userInitial;
+        document.getElementById('sidebarAvatar').textContent = userInitial;
+      }
+
+      document.getElementById('sidebarUserName').textContent = userName;
+      document.getElementById('sidebarUserEmail').textContent = userData.email;
+    }
+
+    /**
+     * Load analytics data from Supabase
+     */
+    async function loadAnalyticsData() {
+      try {
+        const userId = userData.profile.id;
+
+        const { data: reviews, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        allReviews = reviews || [];
+        updateSummaryStats();
+        buildCharts();
+      } catch (error) {
+        console.error('Error loading analytics data:', error);
+        showToast('Failed to load analytics data', 'error');
+      }
+    }
+
+    /**
+     * Update summary statistics
+     */
+    function updateSummaryStats() {
+      const totalReviews = allReviews.length;
+      let avgRating = 0;
+      let repliedCount = 0;
+
+      if (allReviews.length > 0) {
+        const sum = allReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+        avgRating = (sum / allReviews.length).toFixed(1);
+        repliedCount = allReviews.filter((r) => r.reply).length;
+      }
+
+      const replyRate = totalReviews > 0 ? Math.round((repliedCount / totalReviews) * 100) : 0;
+
+      // Get this month's reviews
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const monthlyReviews = allReviews.filter(
+        (r) => new Date(r.created_at) >= new Date(monthStart)
+      ).length;
+
+      document.getElementById('totalReviewsStat').textContent = totalReviews;
+      document.getElementById('avgRatingStat').textContent = avgRating + '⭐';
+      document.getElementById('replyRateStat').textContent = replyRate + '%';
+      document.getElementById('monthlyReviewsStat').textContent = monthlyReviews;
+    }
+
+    /**
+     * Build all charts
+     */
+    function buildCharts() {
+      buildReviewsPerMonthChart();
+      buildSentimentChart();
+      buildRatingTrendChart();
+      buildRatingDistributionChart();
+    }
+
+    /**
+     * Reviews Per Month - Bar Chart
+     */
+    function buildReviewsPerMonthChart() {
+      const months = getLast6Months();
+      const data = months.map((month) => {
+        const [year, monthNum] = month.split('-');
+        return allReviews.filter((r) => {
+          const rDate = new Date(r.created_at);
+          return (
+            rDate.getFullYear() === parseInt(year) &&
+            rDate.getMonth() === parseInt(monthNum) - 1
+          );
+        }).length;
+      });
+
+      const ctx = document.getElementById('reviewsPerMonthChart').getContext('2d');
+
+      if (charts.reviewsPerMonth) {
+        charts.reviewsPerMonth.destroy();
+      }
+
+      charts.reviewsPerMonth = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months.map((m) => getMonthName(m)),
+          datasets: [
+            {
+              label: 'Reviews',
+              data,
+              backgroundColor: '#ff4d00',
+              borderRadius: 8,
+              borderSkipped: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart',
+          },
+        },
+      });
+    }
+
+    /**
+     * Sentiment Breakdown - Doughnut Chart
+     */
+    function buildSentimentChart() {
+      const sentimentCounts = {
+        Positive: allReviews.filter((r) => r.sentiment === 'Positive').length,
+        Neutral: allReviews.filter((r) => r.sentiment === 'Neutral').length,
+        Negative: allReviews.filter((r) => r.sentiment === 'Negative').length,
+      };
+
+      const ctx = document.getElementById('sentimentChart').getContext('2d');
+
+      if (charts.sentiment) {
+        charts.sentiment.destroy();
+      }
+
+      charts.sentiment = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Positive', 'Neutral', 'Negative'],
+          datasets: [
+            {
+              data: [sentimentCounts.Positive, sentimentCounts.Neutral, sentimentCounts.Negative],
+              backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+              borderColor: 'var(--white)',
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: {
+                  family: "'DM Sans', sans-serif",
+                  size: 12,
+                },
+                padding: 15,
+              },
+            },
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart',
+          },
+        },
+      });
+    }
+
+    /**
+     * Rating Trend - Line Chart
+     */
+    function buildRatingTrendChart() {
+      const months = getLast6Months();
+      const data = months.map((month) => {
+        const [year, monthNum] = month.split('-');
+        const monthReviews = allReviews.filter((r) => {
+          const rDate = new Date(r.created_at);
+          return (
+            rDate.getFullYear() === parseInt(year) &&
+            rDate.getMonth() === parseInt(monthNum) - 1
+          );
+        });
+
+        if (monthReviews.length === 0) return null;
+        const sum = monthReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+        return (sum / monthReviews.length).toFixed(1);
+      });
+
+      const ctx = document.getElementById('ratingTrendChart').getContext('2d');
+
+      if (charts.ratingTrend) {
+        charts.ratingTrend.destroy();
+      }
+
+      charts.ratingTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months.map((m) => getMonthName(m)),
+          datasets: [
+            {
+              label: 'Average Rating',
+              data,
+              borderColor: '#ff4d00',
+              backgroundColor: 'rgba(255, 77, 0, 0.05)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 5,
+              pointBackgroundColor: '#ff4d00',
+              pointBorderColor: 'white',
+              pointBorderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 5,
+            },
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart',
+          },
+        },
+      });
+    }
+
+    /**
+     * Rating Distribution - Horizontal Bar Chart
+     */
+    function buildRatingDistributionChart() {
+      const distribution = [
+        allReviews.filter((r) => r.rating === 5).length,
+        allReviews.filter((r) => r.rating === 4).length,
+        allReviews.filter((r) => r.rating === 3).length,
+        allReviews.filter((r) => r.rating === 2).length,
+        allReviews.filter((r) => r.rating === 1).length,
+      ];
+
+      const ctx = document.getElementById('ratingDistributionChart').getContext('2d');
+
+      if (charts.ratingDistribution) {
+        charts.ratingDistribution.destroy();
+      }
+
+      charts.ratingDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['5⭐', '4⭐', '3⭐', '2⭐', '1⭐'],
+          datasets: [
+            {
+              label: 'Count',
+              data: distribution,
+              backgroundColor: ['#22c55e', '#84cc16', '#f59e0b', '#f97316', '#ef4444'],
+              borderRadius: 8,
+              borderSkipped: false,
+            },
+          ],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart',
+          },
+        },
+      });
+    }
+
+    /**
+     * Get last 6 months in YYYY-MM format
+     */
+    function getLast6Months() {
+      const months = [];
+      const now = new Date();
+
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        months.push(`${year}-${month}`);
+      }
+
+      return months;
+    }
+
+    /**
+     * Convert YYYY-MM to month name
+     */
+    function getMonthName(dateStr) {
+      const [year, month] = dateStr.split('-');
+      const date = new Date(year, parseInt(month) - 1);
+      return date.toLocaleDateString('en-US', { month: 'short' });
+    }
+
+    /**
+     * Handle sign out
+     */
+    async function handleSignOut() {
+      if (confirm('Are you sure you want to sign out?')) {
+        await signOut();
+      }
+    }
+
+    /**
+     * Show toast notification
+     */
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    window.showToast = showToast;
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

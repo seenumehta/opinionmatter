@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpinionMatter — Get More Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --cream: #ede8dd;
+    --accent: #ff4d00;
+    --accent2: #ffb800;
+    --muted: #7a7060;
+    --white: #ffffff;
+    --card: #ffffff;
+    --border: #d6d0c4;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 2.5rem;
+    border-bottom: 1.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(245,240,232,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .logo span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.7; }
+  }
+
+  .nav-badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 5rem 2.5rem 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    padding: 0.3rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1.8rem;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: var(--ink);
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+    position: relative;
+    display: inline-block;
+  }
+
+  h1 em::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--accent2);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: underlineIn 0.6s 1s ease forwards;
+  }
+
+  @keyframes underlineIn {
+    to { transform: scaleX(1); }
+  }
+
+  .hero p {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-weight: 400;
+    max-width: 520px;
+    margin-inline: auto;
+    line-height: 1.7;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  /* ─── STATS ROW ─── */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    width: 100%;
+    height: 1.5px;
+    background: var(--border);
+    max-width: 860px;
+    margin: 3rem auto;
+  }
+
+  /* ─── CARD ─── */
+  .card-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    animation: fadeUp 0.8s 0.5s ease both;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: 'QR';
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 8rem;
+    font-weight: 800;
+    color: var(--cream);
+    pointer-events: none;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  /* ─── STEPS ─── */
+  .steps {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .step.active {
+    background: var(--ink);
+    color: var(--white);
+    border-color: var(--ink);
+  }
+
+  .step-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: currentColor;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step.active .step-num {
+    background: var(--accent);
+    color: white;
+  }
+
+  /* ─── FORM ─── */
+  .form-group {
+    margin-bottom: 1.4rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--paper);
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+
+  input:focus {
+    border-color: var(--ink);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(13,13,13,0.06);
+  }
+
+  input::placeholder { color: #bbb; }
+
+  .input-hint {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  /* ─── BUTTON ─── */
+  .btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--ink);
+    color: var(--white);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:hover {
+    background: var(--accent);
+    box-shadow: 0 6px 24px rgba(255,77,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+
+  .btn:hover::after { transform: translateX(100%); }
+
+  /* ─── RESULT SECTION ─── */
+  .result {
+    display: none;
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1.5px solid var(--border);
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .result.visible { display: block; }
+
+  .result-inner {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .qr-box {
+    flex-shrink: 0;
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 1.2rem;
+    box-shadow: 5px 5px 0 var(--ink);
+    position: relative;
+  }
+
+  #qrcode canvas, #qrcode img {
+    display: block;
+    border-radius: 8px;
+  }
+
+  .qr-label {
+    text-align: center;
+    margin-top: 0.8rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .result-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .result-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .btn-download {
+    padding: 0.9rem 1.4rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 20px rgba(255,77,0,0.25);
+  }
+
+  .btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(255,77,0,0.35);
+  }
+
+  .btn-download:active { transform: scale(0.97); }
+
+  .btn-reset {
+    padding: 0.75rem 1.4rem;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .how {
+    max-width: 860px;
+    margin: 0 auto 5rem;
+    padding: 0 2rem;
+    animation: fadeUp 0.8s 0.6s ease both;
+  }
+
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .how-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.6rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: default;
+  }
+
+  .how-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  }
+
+  .how-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .how-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .how-card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1.5px solid var(--border);
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  footer strong {
+    font-family: 'Syne', sans-serif;
+    color: var(--ink);
+  }
+
+  /* ─── ERROR ─── */
+  .error-msg {
+    display: none;
+    color: var(--accent);
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+  }
+
+  .error-msg.show { display: block; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    z-index: 9998;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ─── LOADING ─── */
+  .btn-loader {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem 1.2rem; }
+    .hero { padding: 3rem 1.2rem 2rem; }
+    .card-wrap { padding: 0 1.2rem 4rem; }
+    .card { padding: 1.6rem; }
+    h1 { letter-spacing: -1px; }
+    .result-inner { flex-direction: column; align-items: center; }
+    .result-info { text-align: center; }
+    .result-actions { align-items: stretch; }
+    .stats { gap: 1.5rem; }
+    .how { padding: 0 1.2rem; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    OpinionMatter <span></span>
+  </div>
+  <div class="nav-badge">Free Tool</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">⭐ Boost Your Google Reviews</div>
+  <h1>Make Every<br/><em>Opinion Matter</em></h1>
+  <p>Generate a QR code linked to your Google Review page. Print it, place it at your counter, and watch 5-star reviews roll in.</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">10s</div>
+      <div class="stat-label">To Generate</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Free Forever</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3×</div>
+      <div class="stat-label">More Reviews</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MAIN CARD -->
+<div class="card-wrap">
+  <div class="card">
+
+    <div class="card-title">Generate Your Review QR</div>
+    <div class="card-sub">Fill in your business details below — takes 10 seconds.</div>
+
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div> Enter Details
+      </div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div> Generate QR
+      </div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div> Download & Print
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div id="formSection">
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" id="bizName" placeholder="e.g. Sharma Medical Store" maxlength="60"/>
+      </div>
+
+      <div class="form-group">
+        <label>Google Review Link</label>
+        <input type="url" id="reviewUrl" placeholder="https://g.page/r/your-business/review"/>
+        <div class="input-hint">💡 Go to Google Maps → Your Business → Share → Copy review link</div>
+        <div class="error-msg" id="urlError">Please enter a valid Google review link</div>
+      </div>
+
+      <div class="form-group">
+        <label>Tagline (optional)</label>
+        <input type="text" id="tagline" placeholder="e.g. Your feedback helps us grow!" maxlength="60"/>
+      </div>
+
+      <button class="btn" id="generateBtn" onclick="generateQR()">
+        <span id="btnText">Generate QR Code →</span>
+        <div class="btn-loader" id="btnLoader"></div>
+      </button>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result" id="resultSection">
+      <div class="result-inner">
+        <div class="qr-box">
+          <div id="qrcode"></div>
+          <div class="qr-label" id="qrLabel">Scan to Review</div>
+        </div>
+        <div class="result-info">
+          <div class="result-name" id="resultName">Your Business</div>
+          <div class="result-desc" id="resultDesc">
+            Share this QR code with your customers. Place it at your counter, add it to receipts, or share on WhatsApp — every scan leads directly to your Google review page.
+          </div>
+          <div class="result-actions">
+            <button class="btn-download" onclick="downloadQR()">
+              ⬇ Download QR Code (PNG)
+            </button>
+            <button class="btn-reset" onclick="resetForm()">
+              ← Generate Another
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="section-label">How it works</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-icon">🔗</div>
+      <h3>Paste Your Link</h3>
+      <p>Copy your Google Business review link from Google Maps and paste it here.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">⚡</div>
+      <h3>Instant QR</h3>
+      <p>Your custom QR code is generated instantly — no signup, no waiting.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">🖨️</div>
+      <h3>Print & Place</h3>
+      <p>Download the QR as PNG and print it. Place at your counter or on receipts.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">⭐</div>
+      <h3>Get More Reviews</h3>
+      <p>Customers scan & leave a review in seconds. Watch your rating climb.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div><strong>OpinionMatter</strong> — Free for small businesses</div>
+  <div>Made with ♥ to help local businesses grow</div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let qrInstance = null;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('step' + i).classList.toggle('active', i <= n);
+    }
+  }
+
+  function generateQR() {
+    const name = document.getElementById('bizName').value.trim();
+    const url = document.getElementById('reviewUrl').value.trim();
+    const tagline = document.getElementById('tagline').value.trim();
+    const urlError = document.getElementById('urlError');
+
+    // Validation
+    if (!name) {
+      document.getElementById('bizName').focus();
+      showToast('Please enter your business name');
+      return;
+    }
+
+    if (!url || !url.startsWith('http')) {
+      urlError.classList.add('show');
+      document.getElementById('reviewUrl').focus();
+      return;
+    }
+    urlError.classList.remove('show');
+
+    // Loading state
+    const btn = document.getElementById('generateBtn');
+    const btnText = document.getElementById('btnText');
+    const loader = document.getElementById('btnLoader');
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    loader.style.display = 'block';
+
+    setStep(2);
+
+    setTimeout(() => {
+      // Generate QR - Link to review collection page
+      const qrContainer = document.getElementById('qrcode');
+      qrContainer.innerHTML = '';
+
+      // Create URL for review collection page
+      const baseUrl = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+      const collectReviewUrl = `${baseUrl}/collect-review.html?business=${encodeURIComponent(name)}`;
+
+      qrInstance = new QRCode(qrContainer, {
+        text: collectReviewUrl,
+        width: 200,
+        height: 200,
+        colorDark: '#0d0d0d',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Update result section
+      document.getElementById('resultName').textContent = name;
+      document.getElementById('qrLabel').textContent = tagline || 'Scan to Leave a Review ⭐';
+
+      if (tagline) {
+        document.getElementById('resultDesc').textContent =
+          `"${tagline}" — Share this QR with customers. Place at your counter, add to receipts, or send on WhatsApp.`;
+      }
+
+      // Show result
+      document.getElementById('formSection').style.display = 'none';
+      const result = document.getElementById('resultSection');
+      result.classList.add('visible');
+
+      setStep(3);
+
+      // Reset button
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      loader.style.display = 'none';
+
+      showToast('✅ QR Code ready! Download and print it.');
+    }, 1200);
+  }
+
+  function downloadQR() {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (!canvas) {
+      showToast('QR not ready yet');
+      return;
+    }
+
+    const bizName = document.getElementById('bizName').value.trim() || 'QR';
+
+    // Create padded canvas for download
+    const pad = 40;
+    const size = canvas.width + pad * 2;
+    const offscreen = document.createElement('canvas');
+    offscreen.width = size;
+    offscreen.height = size + 50;
+    const ctx = offscreen.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.roundRect(0, 0, offscreen.width, offscreen.height, 16);
+    ctx.fill();
+
+    // QR
+    ctx.drawImage(canvas, pad, pad);
+
+    // Label
+    ctx.fillStyle = '#0d0d0d';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⭐ Scan to Review Us', offscreen.width / 2, size + 32);
+
+    const link = document.createElement('a');
+    link.download = `OpinionMatter-${bizName.replace(/\s+/g, '_')}.png`;
+    link.href = offscreen.toDataURL('image/png');
+    link.click();
+
+    showToast('⬇ Downloaded! Print & place it.');
+  }
+
+  function resetForm() {
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('resultSection').classList.remove('visible');
+    document.getElementById('qrcode').innerHTML = '';
+    document.getElementById('bizName').value = '';
+    document.getElementById('reviewUrl').value = '';
+    document.getElementById('tagline').value = '';
+    setStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('formSection').style.display !== 'none') {
+      generateQR();
+    }
+  });
+</script>
+</body>
+</html>

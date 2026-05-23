@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — OpinionMatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      margin-left: 0;
+      margin-top: 60px;
+      padding: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+    }
+
+    .login-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06);
+      text-align: center;
+    }
+
+    .login-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .login-logo span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .login-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    .login-subtext {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .login-divider {
+      width: 100%;
+      height: 1.5px;
+      background: var(--border);
+      margin: 2rem 0;
+    }
+
+    .google-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: var(--ink);
+    }
+
+    .google-btn:hover {
+      background: var(--paper);
+      border-color: var(--ink);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .google-btn:active {
+      transform: scale(0.98);
+    }
+
+    .google-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .login-footer {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2rem;
+      line-height: 1.6;
+    }
+
+    .login-footer strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .spinner-inline {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(13, 13, 13, 0.2);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        margin-top: 0;
+        padding: 1rem;
+      }
+
+      .login-container {
+        padding: 1rem;
+      }
+
+      .login-card {
+        padding: 1.8rem;
+      }
+
+      .login-headline {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="nav-badge">Free Tool</div>
+  </nav>
+
+  <!-- MAIN LOGIN FORM -->
+  <main>
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-logo">
+          OpinionMatter <span></span>
+        </div>
+
+        <h1 class="login-headline">Sign in to grow your reviews</h1>
+        <p class="login-subtext">Enter your email to get started</p>
+
+        <form id="loginForm" style="margin-top: 1.5rem;">
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--ink);">Email</label>
+            <input 
+              type="email" 
+              id="emailInput" 
+              placeholder="your@email.com"
+              required
+              style="width: 100%; padding: 1rem; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 1rem; background: var(--paper); transition: all 0.2s ease;"
+              onfocus="this.style.background = 'var(--white)'; this.style.borderColor = 'var(--ink)'; this.style.boxShadow = '0 0 0 3px rgba(13,13,13,0.06)';"
+              onblur="this.style.background = 'var(--paper)'; this.style.borderColor = 'var(--border)'; this.style.boxShadow = 'none';"
+            />
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--ink);">Password</label>
+            <input 
+              type="password" 
+              id="passwordInput" 
+              placeholder="Create a password"
+              required
+              style="width: 100%; padding: 1rem; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 1rem; background: var(--paper); transition: all 0.2s ease;"
+              onfocus="this.style.background = 'var(--white)'; this.style.borderColor = 'var(--ink)'; this.style.boxShadow = '0 0 0 3px rgba(13,13,13,0.06)';"
+              onblur="this.style.background = 'var(--paper)'; this.style.borderColor = 'var(--border)'; this.style.boxShadow = 'none';"
+            />
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem;">At least 6 characters</div>
+          </div>
+
+          <button type="submit" style="width: 100%; padding: 1rem; background: var(--ink); color: white; border: none; border-radius: 12px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease;" id="loginBtn">
+            <span id="loginBtnText">Sign In</span>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          💳 <strong>Free forever</strong><br />
+          No credit card needed. Start collecting reviews today.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    /**
+     * Handle Email Login Form
+     */
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+
+      if (!email || !password || password.length < 6) {
+        showToastMsg('Please enter valid email and password (min 6 chars)', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('loginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      btn.disabled = true;
+      btnText.textContent = 'Signing in...';
+
+      try {
+        // Wait for Supabase to be ready
+        const sb = await waitForSupabase();
+        
+        // Try to sign in first
+        let { data, error } = await sb.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        // If user doesn't exist, create account (sign up)
+        if (error && error.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+            email: email,
+            password: password
+          });
+
+          if (signUpError) {
+            showToastMsg('Error: ' + signUpError.message, 'error');
+            btn.disabled = false;
+            btnText.textContent = 'Sign In';
+            return;
+          }
+
+          // Create user profile after signup
+          const { error: profileError } = await sb.from('users').insert([
+            {
+              auth_id: signUpData.user.id,
+              email: email,
+              business_name: email.split('@')[0]
+            }
+          ]);
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+
+          showToastMsg('Account created! Redirecting...', 'success');
+        } else if (error) {
+          showToastMsg('Error: ' + error.message, 'error');
+          btn.disabled = false;
+          btnText.textContent = 'Sign In';
+          return;
+        }
+
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 500);
+
+      } catch (error) {
+        console.error('Auth error:', error);
+        showToastMsg('Login error. Please try again.', 'error');
+        btn.disabled = false;
+        btnText.textContent = 'Sign In';
+      }
+    });
+
+    /**
+     * Show toast notification
+     */
+    function showToastMsg(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Make showToast globally available
+    window.showToast = showToastMsg;
+
+    // Wait for Supabase to load, then initialize
+    async function initPageAsync() {
+      try {
+        await waitForSupabase();
+        const user = await getUser();
+        if (user) {
+          window.location.href = '/dashboard.html';
+        }
+      } catch (error) {
+        console.error('Init error:', error);
+      }
+    }
+
+    // Run after everything loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPageAsync);
+    } else {
+      initPageAsync();
+    }
+  </script>
+</body>
+</html>

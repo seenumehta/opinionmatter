@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Database — OpinionMatter</title>
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ff4d00;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #ff4d00;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #e63d00;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .log-item {
+      margin: 5px 0;
+      padding: 3px 0;
+    }
+    .success {
+      color: #10b981;
+    }
+    .error {
+      color: #ef4444;
+    }
+    .info {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗄️ Database Setup</h1>
+    <p>Click below to create required tables in Supabase:</p>
+    <button onclick="setupDatabase()">Create Tables</button>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://ytjaenatwhjwnlmgqere.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_TZ5w0AjBoOemBGEMBkwNbQ_-Maf4LKe';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const item = document.createElement('div');
+      item.className = `log-item ${type}`;
+      item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(item);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    async function setupDatabase() {
+      const btn = document.querySelector('button');
+      btn.disabled = true;
+      
+      try {
+        log('🚀 Starting database setup...', 'info');
+
+        // Create reviews table
+        log('📝 Creating reviews table...', 'info');
+        const { error: reviewsError } = await supabase.rpc('exec_sql', {
+          sql: `
+            CREATE TABLE IF NOT EXISTS public.reviews (
+              id BIGSERIAL PRIMARY KEY,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              reviewer_name TEXT NOT NULL,
+              reviewer_email TEXT,
+              rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+              text TEXT NOT NULL,
+              sentiment TEXT,
+              source TEXT DEFAULT 'web',
+              business_name TEXT
+            );
+
+            -- Enable RLS
+            ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+            -- Allow anyone to insert
+            CREATE POLICY "Allow public inserts" ON public.reviews
+              FOR INSERT WITH CHECK (true);
+
+            -- Allow anyone to read
+            CREATE POLICY "Allow public read" ON public.reviews
+              FOR SELECT USING (true);
+
+            -- Create users table if not exists
+            CREATE TABLE IF NOT EXISTS public.users (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              email TEXT UNIQUE NOT NULL,
+              business_name TEXT,
+              auth_user_id UUID REFERENCES auth.users(id)
+            );
+
+            ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+            CREATE POLICY "Users can read own profile" ON public.users
+              FOR SELECT USING (auth.uid() = auth_user_id OR true);
+
+            CREATE POLICY "Users can update own profile" ON public.users
+              FOR UPDATE USING (auth.uid() = auth_user_id);
+          `
+        });
+
+        if (reviewsError) throw reviewsError;
+        log('✅ Tables created successfully!', 'success');
+
+      } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

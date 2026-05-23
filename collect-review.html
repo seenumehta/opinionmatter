@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Share Your Review — OpinionMatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      margin-left: 0;
+      margin-top: 0;
+      padding: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeUp 0.8s ease both;
+      min-height: 100vh;
+    }
+
+    .review-container {
+      width: 100%;
+      max-width: 500px;
+      padding: 2rem;
+    }
+
+    .review-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06);
+    }
+
+    .review-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .review-business {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .review-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Star Rating */
+    .stars-container {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+
+    .star {
+      font-size: 3rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      filter: grayscale(100%);
+      opacity: 0.5;
+    }
+
+    .star:hover {
+      transform: scale(1.1);
+      filter: grayscale(0%);
+      opacity: 0.8;
+    }
+
+    .star.active {
+      filter: grayscale(0%);
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    .rating-display {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: var(--ink);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: var(--paper);
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-size: 0.95rem;
+    }
+
+    .ai-generating {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 0.5rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--accent);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    button {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #e63d00;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--paper);
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--cream);
+    }
+
+    .success-message {
+      background: #10b981;
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .review-container {
+        padding: 1rem;
+      }
+
+      .review-card {
+        padding: 1.5rem;
+      }
+
+      .star {
+        font-size: 2.5rem;
+      }
+
+      .review-business {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      OpinionMatter <span></span>
+    </div>
+    <div class="nav-badge">Share Your Feedback</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+    <div class="review-container">
+      <div class="review-card">
+        <div id="successMessage"></div>
+
+        <div class="review-header">
+          <div class="review-business" id="businessName">Loading...</div>
+          <div class="review-subtitle">We'd love to hear from you! 💬</div>
+        </div>
+
+        <!-- STAR RATING -->
+        <div>
+          <label style="display: block; text-align: center; margin-bottom: 1rem;">How would you rate us?</label>
+          <div class="stars-container">
+            <span class="star" data-rating="1">⭐</span>
+            <span class="star" data-rating="2">⭐</span>
+            <span class="star" data-rating="3">⭐</span>
+            <span class="star" data-rating="4">⭐</span>
+            <span class="star" data-rating="5">⭐</span>
+          </div>
+          <div class="rating-display" id="ratingDisplay"></div>
+        </div>
+
+        <!-- FORM -->
+        <form id="reviewForm">
+          <div class="form-group">
+            <label for="reviewerName">Your Name</label>
+            <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="reviewerEmail">Email (optional)</label>
+            <input type="email" id="reviewerEmail" name="reviewerEmail" placeholder="your@email.com" />
+          </div>
+
+          <div class="form-group">
+            <label for="reviewText">Your Review</label>
+            <textarea id="reviewText" name="reviewText" placeholder="Share your experience..." required></textarea>
+            <div class="ai-generating" id="aiStatus" style="display: none;">
+              <span class="spinner"></span>
+              <span>✨ AI is crafting your review...</span>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button type="button" class="btn-secondary" id="resetBtn">Reset</button>
+            <button type="submit" class="btn-primary" id="submitBtn">Submit Review</button>
+          </div>
+        </form>
+
+        <!-- FOOTER BRANDING -->
+        <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: center;">
+          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">
+            Powered by <strong style="color: var(--ink);">OpinionMatter</strong>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--muted);">
+            A review management system for businesses
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/gemini.js"></script>
+
+  <script>
+    let selectedRating = 0;
+    const urlParams = new URLSearchParams(window.location.search);
+    const businessName = urlParams.get('business') || 'Our Business';
+
+    // Initialize
+    document.getElementById('businessName').textContent = businessName;
+
+    // Star Rating System
+    const stars = document.querySelectorAll('.star');
+    const ratingDisplay = document.getElementById('ratingDisplay');
+    const reviewText = document.getElementById('reviewText');
+
+    stars.forEach(star => {
+      star.addEventListener('click', async () => {
+        selectedRating = parseInt(star.dataset.rating);
+        
+        // Update UI
+        stars.forEach(s => s.classList.remove('active'));
+        for (let i = 0; i < selectedRating; i++) {
+          stars[i].classList.add('active');
+        }
+
+        // Show rating
+        const messages = {
+          1: '😞 We\'re sorry to hear that...',
+          2: '😐 There\'s room for improvement',
+          3: '😊 Thanks for the feedback!',
+          4: '😄 We\'re glad you liked it!',
+          5: '🤩 You\'re amazing! Thank you!'
+        };
+        ratingDisplay.textContent = messages[selectedRating];
+
+        // Generate AI review
+        if (selectedRating > 0) {
+          await generateAIReview();
+        }
+      });
+    });
+
+    // Generate AI Review
+    async function generateAIReview() {
+      try {
+        document.getElementById('aiStatus').style.display = 'flex';
+        
+        const sentimentMap = {
+          1: 'negative',
+          2: 'neutral',
+          3: 'neutral',
+          4: 'positive',
+          5: 'positive'
+        };
+
+        const prompt = `Generate a short, authentic customer review (2-3 sentences) for a business. 
+The review should:
+- Have a ${sentimentMap[selectedRating]} sentiment (${selectedRating} stars out of 5)
+- Sound natural and human-written
+- Be concise and specific
+- Not mention the exact star rating
+Start directly with the review, no "Review:" prefix.`;
+
+        // Use constants from global scope (loaded from gemini.js)
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA`;
+        
+        console.log('Calling Gemini API:', apiUrl);
+        console.log('Prompt:', prompt);
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 150,
+              temperature: 0.7
+            }
+          })
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        
+        const data = await response.json();
+        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        if (generatedText) {
+          reviewText.value = generatedText;
+          reviewText.style.borderColor = 'var(--accent)';
+        }
+      } catch (error) {
+        console.error('AI Generation Error:', error);
+      } finally {
+        document.getElementById('aiStatus').style.display = 'none';
+      }
+    }
+
+    // Form Submit
+    document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (selectedRating === 0) {
+        alert('Please select a rating first!');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try {
+        // Wait for Supabase to be ready
+        const sb = await waitForSupabase();
+        
+        // Insert review to database
+        const { data, error } = await sb.from('reviews').insert([
+          {
+            reviewer_name: document.getElementById('reviewerName').value,
+            reviewer_email: document.getElementById('reviewerEmail').value || null,
+            rating: selectedRating,
+            text: document.getElementById('reviewText').value,
+            sentiment: selectedRating >= 4 ? 'Positive' : (selectedRating >= 3 ? 'Neutral' : 'Negative'),
+            source: 'qr_scan'
+          }
+        ]);
+
+        if (error) throw error;
+
+        // Show success
+        showSuccess();
+        resetForm();
+      } catch (error) {
+        console.error('Submission Error:', error);
+        alert('Error submitting review. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Review';
+      }
+    });
+
+    function showSuccess() {
+      const msg = document.getElementById('successMessage');
+      msg.innerHTML = '✅ Thank you! Your review has been submitted successfully!';
+      msg.classList.add('success-message');
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 5000);
+    }
+
+    function resetForm() {
+      document.getElementById('reviewForm').reset();
+      selectedRating = 0;
+      stars.forEach(s => s.classList.remove('active'));
+      ratingDisplay.textContent = '';
+      reviewText.style.borderColor = 'var(--border)';
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+  </script>
+</body>
+</html>
