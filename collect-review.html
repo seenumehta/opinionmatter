@@ -325,6 +325,7 @@
     let selectedRating = 0;
     const urlParams = new URLSearchParams(window.location.search);
     const businessName = urlParams.get('business') || 'Our Business';
+    const reviewUrl = urlParams.get('reviewUrl') || null; // ✅ Get Google review link from QR
 
     // Initialize
     document.getElementById('businessName').textContent = businessName;
@@ -465,9 +466,17 @@ Start directly with the review, no "Review:" prefix.`;
       const msg = document.getElementById('successMessage');
       msg.innerHTML = '✅ Thank you! Your review has been submitted successfully!';
       msg.classList.add('success-message');
-      setTimeout(() => {
-        msg.style.display = 'none';
-      }, 5000);
+      
+      // ✅ Redirect to Google review link after 2 seconds if available
+      if (reviewUrl) {
+        setTimeout(() => {
+          window.location.href = reviewUrl;
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          msg.style.display = 'none';
+        }, 5000);
+      }
     }
 
     function resetForm() {

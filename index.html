@@ -845,8 +845,12 @@
       const qrContainer = document.getElementById('qrcode');
       qrContainer.innerHTML = '';
 
+      // ✅ FIX: Generate URL pointing to collect-review.html with business name & review URL
+      const currentDomain = window.location.origin;
+      const qrUrl = `${currentDomain}/collect-review.html?business=${encodeURIComponent(name)}&reviewUrl=${encodeURIComponent(url)}`;
+
       new QRCode(qrContainer, {
-        text: url,
+        text: qrUrl,
         width: 200,
         height: 200,
         colorDark: '#0d0d0d',
