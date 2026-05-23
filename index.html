@@ -6,6 +6,10 @@
 <title>OpinionMatter — Get More Reviews</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- ✅ Supabase + Auth add kiya -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -31,7 +35,6 @@
     overflow-x: hidden;
   }
 
-  /* Noise texture overlay */
   body::before {
     content: '';
     position: fixed;
@@ -42,7 +45,6 @@
     opacity: 0.4;
   }
 
-  /* ─── NAV ─── */
   nav {
     display: flex;
     align-items: center;
@@ -81,6 +83,13 @@
     50% { transform: scale(1.4); opacity: 0.7; }
   }
 
+  /* ✅ Nav right side — login/dashboard buttons */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
   .nav-badge {
     font-size: 0.75rem;
     font-weight: 500;
@@ -91,7 +100,43 @@
     letter-spacing: 0.03em;
   }
 
-  /* ─── HERO ─── */
+  .nav-login-btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .nav-login-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(255,77,0,0.3);
+  }
+
+  .nav-dashboard-btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    background: var(--ink);
+    color: white;
+    border: none;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    text-decoration: none;
+    display: none; /* hidden by default, shown when logged in */
+  }
+
+  .nav-dashboard-btn:hover { transform: translateY(-1px); }
+
   .hero {
     padding: 5rem 2.5rem 3rem;
     max-width: 900px;
@@ -150,9 +195,7 @@
     animation: underlineIn 0.6s 1s ease forwards;
   }
 
-  @keyframes underlineIn {
-    to { transform: scaleX(1); }
-  }
+  @keyframes underlineIn { to { transform: scaleX(1); } }
 
   .hero p {
     margin-top: 1.5rem;
@@ -165,7 +208,6 @@
     animation: fadeUp 0.8s 0.3s ease both;
   }
 
-  /* ─── STATS ROW ─── */
   .stats {
     display: flex;
     justify-content: center;
@@ -175,9 +217,7 @@
     animation: fadeUp 0.8s 0.4s ease both;
   }
 
-  .stat {
-    text-align: center;
-  }
+  .stat { text-align: center; }
 
   .stat-num {
     font-family: 'Syne', sans-serif;
@@ -192,7 +232,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* ─── DIVIDER ─── */
   .divider {
     width: 100%;
     height: 1.5px;
@@ -201,7 +240,6 @@
     margin: 3rem auto;
   }
 
-  /* ─── CARD ─── */
   .card-wrap {
     max-width: 860px;
     margin: 0 auto;
@@ -246,7 +284,6 @@
     margin-bottom: 2rem;
   }
 
-  /* ─── STEPS ─── */
   .steps {
     display: flex;
     gap: 0.5rem;
@@ -287,15 +324,9 @@
     flex-shrink: 0;
   }
 
-  .step.active .step-num {
-    background: var(--accent);
-    color: white;
-  }
+  .step.active .step-num { background: var(--accent); color: white; }
 
-  /* ─── FORM ─── */
-  .form-group {
-    margin-bottom: 1.4rem;
-  }
+  .form-group { margin-bottom: 1.4rem; }
 
   label {
     display: block;
@@ -334,7 +365,6 @@
     margin-top: 0.4rem;
   }
 
-  /* ─── BUTTON ─── */
   .btn {
     width: 100%;
     padding: 1rem;
@@ -350,6 +380,10 @@
     transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s;
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
   .btn:hover {
@@ -371,7 +405,6 @@
 
   .btn:hover::after { transform: translateX(100%); }
 
-  /* ─── RESULT SECTION ─── */
   .result {
     display: none;
     margin-top: 2.5rem;
@@ -396,13 +429,9 @@
     border-radius: 16px;
     padding: 1.2rem;
     box-shadow: 5px 5px 0 var(--ink);
-    position: relative;
   }
 
-  #qrcode canvas, #qrcode img {
-    display: block;
-    border-radius: 8px;
-  }
+  #qrcode canvas, #qrcode img { display: block; border-radius: 8px; }
 
   .qr-label {
     text-align: center;
@@ -415,10 +444,7 @@
     color: var(--muted);
   }
 
-  .result-info {
-    flex: 1;
-    min-width: 200px;
-  }
+  .result-info { flex: 1; min-width: 200px; }
 
   .result-name {
     font-family: 'Syne', sans-serif;
@@ -435,11 +461,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .result-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-  }
+  .result-actions { display: flex; flex-direction: column; gap: 0.7rem; }
 
   .btn-download {
     padding: 0.9rem 1.4rem;
@@ -464,8 +486,6 @@
     box-shadow: 0 8px 28px rgba(255,77,0,0.35);
   }
 
-  .btn-download:active { transform: scale(0.97); }
-
   .btn-reset {
     padding: 0.75rem 1.4rem;
     background: transparent;
@@ -479,12 +499,8 @@
     transition: all 0.2s;
   }
 
-  .btn-reset:hover {
-    border-color: var(--ink);
-    color: var(--ink);
-  }
+  .btn-reset:hover { border-color: var(--ink); color: var(--ink); }
 
-  /* ─── HOW IT WORKS ─── */
   .how {
     max-width: 860px;
     margin: 0 auto 5rem;
@@ -513,7 +529,6 @@
     border-radius: 16px;
     padding: 1.6rem;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
-    cursor: default;
   }
 
   .how-card:hover {
@@ -521,10 +536,7 @@
     box-shadow: 0 12px 32px rgba(0,0,0,0.08);
   }
 
-  .how-icon {
-    font-size: 1.8rem;
-    margin-bottom: 0.9rem;
-  }
+  .how-icon { font-size: 1.8rem; margin-bottom: 0.9rem; }
 
   .how-card h3 {
     font-family: 'Syne', sans-serif;
@@ -533,13 +545,8 @@
     margin-bottom: 0.4rem;
   }
 
-  .how-card p {
-    font-size: 0.85rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
+  .how-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
 
-  /* ─── FOOTER ─── */
   footer {
     border-top: 1.5px solid var(--border);
     padding: 1.5rem 2.5rem;
@@ -552,12 +559,8 @@
     color: var(--muted);
   }
 
-  footer strong {
-    font-family: 'Syne', sans-serif;
-    color: var(--ink);
-  }
+  footer strong { font-family: 'Syne', sans-serif; color: var(--ink); }
 
-  /* ─── ERROR ─── */
   .error-msg {
     display: none;
     color: var(--accent);
@@ -568,7 +571,6 @@
 
   .error-msg.show { display: block; }
 
-  /* ─── TOAST ─── */
   .toast {
     position: fixed;
     bottom: 2rem;
@@ -585,11 +587,8 @@
     white-space: nowrap;
   }
 
-  .toast.show {
-    transform: translateX(-50%) translateY(0);
-  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* ─── LOADING ─── */
   .btn-loader {
     display: none;
     width: 18px;
@@ -600,9 +599,7 @@
     animation: spin 0.7s linear infinite;
   }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 600px) {
     nav { padding: 1rem 1.2rem; }
@@ -623,10 +620,14 @@
 
 <!-- NAV -->
 <nav>
-  <div class="logo">
-    OpinionMatter <span></span>
+  <div class="logo">OpinionMatter <span></span></div>
+  <div class="nav-right">
+    <div class="nav-badge">Free Tool</div>
+    <!-- ✅ Logged out hone pe Login dikhega -->
+    <a href="login.html" class="nav-login-btn" id="navLoginBtn">Sign In</a>
+    <!-- ✅ Logged in hone pe Dashboard dikhega -->
+    <a href="dashboard.html" class="nav-dashboard-btn" id="navDashboardBtn">Dashboard →</a>
   </div>
-  <div class="nav-badge">Free Tool</div>
 </nav>
 
 <!-- HERO -->
@@ -634,7 +635,6 @@
   <div class="hero-tag">⭐ Boost Your Google Reviews</div>
   <h1>Make Every<br/><em>Opinion Matter</em></h1>
   <p>Generate a QR code linked to your Google Review page. Print it, place it at your counter, and watch 5-star reviews roll in.</p>
-
   <div class="stats">
     <div class="stat">
       <div class="stat-num">10s</div>
@@ -656,20 +656,13 @@
 <!-- MAIN CARD -->
 <div class="card-wrap">
   <div class="card">
-
     <div class="card-title">Generate Your Review QR</div>
     <div class="card-sub">Fill in your business details below — takes 10 seconds.</div>
 
     <div class="steps">
-      <div class="step active" id="step1">
-        <div class="step-num">1</div> Enter Details
-      </div>
-      <div class="step" id="step2">
-        <div class="step-num">2</div> Generate QR
-      </div>
-      <div class="step" id="step3">
-        <div class="step-num">3</div> Download & Print
-      </div>
+      <div class="step active" id="step1"><div class="step-num">1</div> Enter Details</div>
+      <div class="step" id="step2"><div class="step-num">2</div> Sign In</div>
+      <div class="step" id="step3"><div class="step-num">3</div> Get QR Code</div>
     </div>
 
     <!-- FORM -->
@@ -678,19 +671,16 @@
         <label>Business Name</label>
         <input type="text" id="bizName" placeholder="e.g. Sharma Medical Store" maxlength="60"/>
       </div>
-
       <div class="form-group">
         <label>Google Review Link</label>
         <input type="url" id="reviewUrl" placeholder="https://g.page/r/your-business/review"/>
         <div class="input-hint">💡 Go to Google Maps → Your Business → Share → Copy review link</div>
         <div class="error-msg" id="urlError">Please enter a valid Google review link</div>
       </div>
-
       <div class="form-group">
         <label>Tagline (optional)</label>
         <input type="text" id="tagline" placeholder="e.g. Your feedback helps us grow!" maxlength="60"/>
       </div>
-
       <button class="btn" id="generateBtn" onclick="generateQR()">
         <span id="btnText">Generate QR Code →</span>
         <div class="btn-loader" id="btnLoader"></div>
@@ -707,20 +697,15 @@
         <div class="result-info">
           <div class="result-name" id="resultName">Your Business</div>
           <div class="result-desc" id="resultDesc">
-            Share this QR code with your customers. Place it at your counter, add it to receipts, or share on WhatsApp — every scan leads directly to your Google review page.
+            Share this QR code with your customers. Place it at your counter, add it to receipts, or share on WhatsApp.
           </div>
           <div class="result-actions">
-            <button class="btn-download" onclick="downloadQR()">
-              ⬇ Download QR Code (PNG)
-            </button>
-            <button class="btn-reset" onclick="resetForm()">
-              ← Generate Another
-            </button>
+            <button class="btn-download" onclick="downloadQR()">⬇ Download QR Code (PNG)</button>
+            <button class="btn-reset" onclick="resetForm()">← Generate Another</button>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -729,24 +714,24 @@
   <div class="section-label">How it works</div>
   <div class="how-grid">
     <div class="how-card">
-      <div class="how-icon">🔗</div>
-      <h3>Paste Your Link</h3>
-      <p>Copy your Google Business review link from Google Maps and paste it here.</p>
+      <div class="how-icon">📝</div>
+      <h3>Fill Your Details</h3>
+      <p>Enter your business name and Google review link. Takes 10 seconds.</p>
     </div>
     <div class="how-card">
-      <div class="how-icon">⚡</div>
-      <h3>Instant QR</h3>
-      <p>Your custom QR code is generated instantly — no signup, no waiting.</p>
+      <div class="how-icon">🔐</div>
+      <h3>Sign In Free</h3>
+      <p>Create a free account to save your QR and manage reviews from your dashboard.</p>
     </div>
     <div class="how-card">
       <div class="how-icon">🖨️</div>
-      <h3>Print & Place</h3>
-      <p>Download the QR as PNG and print it. Place at your counter or on receipts.</p>
+      <h3>Download & Print</h3>
+      <p>Download your QR as PNG and print it. Place at your counter or on receipts.</p>
     </div>
     <div class="how-card">
       <div class="how-icon">⭐</div>
       <h3>Get More Reviews</h3>
-      <p>Customers scan & leave a review in seconds. Watch your rating climb.</p>
+      <p>Customers scan and leave a review in seconds. Watch your rating climb.</p>
     </div>
   </div>
 </section>
@@ -761,25 +746,27 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let qrInstance = null;
-
+  // ─── TOAST ───
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
+  window.showToast = showToast;
 
+  // ─── STEPS ───
   function setStep(n) {
     for (let i = 1; i <= 3; i++) {
       document.getElementById('step' + i).classList.toggle('active', i <= n);
     }
   }
 
+  // ─── MAIN GENERATE FUNCTION ───
   function generateQR() {
     const name = document.getElementById('bizName').value.trim();
-    const url = document.getElementById('reviewUrl').value.trim();
-    const tagline = document.getElementById('tagline').value.trim();
+    const url  = document.getElementById('reviewUrl').value.trim();
+    const tag  = document.getElementById('tagline').value.trim();
     const urlError = document.getElementById('urlError');
 
     // Validation
@@ -788,7 +775,6 @@
       showToast('Please enter your business name');
       return;
     }
-
     if (!url || !url.startsWith('http')) {
       urlError.classList.add('show');
       document.getElementById('reviewUrl').focus();
@@ -796,27 +782,71 @@
     }
     urlError.classList.remove('show');
 
+    // ✅ Form data localStorage mein save karo
+    localStorage.setItem('qr_pending', JSON.stringify({ name, url, tag }));
+
+    // ✅ Login check karo
+    checkLoginThenGenerate();
+  }
+
+  // ─── LOGIN CHECK ───
+  async function checkLoginThenGenerate() {
+    let loggedIn = false;
+
+    try {
+      const sb = await waitForSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+      loggedIn = !!session;
+    } catch (e) {
+      // Supabase load nahi hua — guest mode
+      loggedIn = false;
+    }
+
+    if (loggedIn) {
+      // ✅ Already logged in — seedha QR banao
+      doGenerateQR();
+    } else {
+      // ❌ Login nahi — login page pe bhejo
+      setStep(2);
+      localStorage.setItem('redirect_after_login', 'index.html');
+      showToast('📝 Please sign in to generate your QR code');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1400);
+    }
+  }
+
+  // ─── ACTUAL QR GENERATION ───
+  function doGenerateQR() {
+    const pending = JSON.parse(localStorage.getItem('qr_pending') || '{}');
+    const name = pending.name || document.getElementById('bizName').value.trim();
+    const url  = pending.url  || document.getElementById('reviewUrl').value.trim();
+    const tag  = pending.tag  || document.getElementById('tagline').value.trim();
+
+    // Form fill karo agar empty hai
+    if (document.getElementById('bizName').value === '') {
+      document.getElementById('bizName').value = name;
+      document.getElementById('reviewUrl').value = url;
+      document.getElementById('tagline').value = tag;
+    }
+
     // Loading state
-    const btn = document.getElementById('generateBtn');
+    const btn     = document.getElementById('generateBtn');
     const btnText = document.getElementById('btnText');
-    const loader = document.getElementById('btnLoader');
+    const loader  = document.getElementById('btnLoader');
     btn.disabled = true;
     btnText.style.display = 'none';
-    loader.style.display = 'block';
+    loader.style.display  = 'block';
 
     setStep(2);
 
     setTimeout(() => {
-      // Generate QR - Link to review collection page
+      // QR generate karo
       const qrContainer = document.getElementById('qrcode');
       qrContainer.innerHTML = '';
 
-      // Create URL for review collection page
-      const baseUrl = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
-      const collectReviewUrl = `${baseUrl}/collect-review.html?business=${encodeURIComponent(name)}`;
-
-      qrInstance = new QRCode(qrContainer, {
-        text: collectReviewUrl,
+      new QRCode(qrContainer, {
+        text: url,
         width: 200,
         height: 200,
         colorDark: '#0d0d0d',
@@ -824,85 +854,104 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
-      // Update result section
       document.getElementById('resultName').textContent = name;
-      document.getElementById('qrLabel').textContent = tagline || 'Scan to Leave a Review ⭐';
-
-      if (tagline) {
+      document.getElementById('qrLabel').textContent = tag || 'Scan to Leave a Review ⭐';
+      if (tag) {
         document.getElementById('resultDesc').textContent =
-          `"${tagline}" — Share this QR with customers. Place at your counter, add to receipts, or send on WhatsApp.`;
+          `"${tag}" — Share this QR with customers. Place at your counter, add to receipts, or send on WhatsApp.`;
       }
 
       // Show result
       document.getElementById('formSection').style.display = 'none';
-      const result = document.getElementById('resultSection');
-      result.classList.add('visible');
-
+      document.getElementById('resultSection').classList.add('visible');
       setStep(3);
 
       // Reset button
       btn.disabled = false;
       btnText.style.display = 'inline';
-      loader.style.display = 'none';
+      loader.style.display  = 'none';
+
+      // ✅ Pending clear karo
+      localStorage.removeItem('qr_pending');
 
       showToast('✅ QR Code ready! Download and print it.');
     }, 1200);
   }
 
+  // ─── DOWNLOAD ───
   function downloadQR() {
     const canvas = document.querySelector('#qrcode canvas');
-    if (!canvas) {
-      showToast('QR not ready yet');
-      return;
-    }
+    if (!canvas) { showToast('QR not ready yet'); return; }
 
     const bizName = document.getElementById('bizName').value.trim() || 'QR';
-
-    // Create padded canvas for download
     const pad = 40;
     const size = canvas.width + pad * 2;
-    const offscreen = document.createElement('canvas');
-    offscreen.width = size;
-    offscreen.height = size + 50;
-    const ctx = offscreen.getContext('2d');
+    const off = document.createElement('canvas');
+    off.width  = size;
+    off.height = size + 50;
+    const ctx = off.getContext('2d');
 
-    // Background
     ctx.fillStyle = '#ffffff';
-    ctx.roundRect(0, 0, offscreen.width, offscreen.height, 16);
+    ctx.roundRect(0, 0, off.width, off.height, 16);
     ctx.fill();
-
-    // QR
     ctx.drawImage(canvas, pad, pad);
-
-    // Label
     ctx.fillStyle = '#0d0d0d';
     ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⭐ Scan to Review Us', offscreen.width / 2, size + 32);
+    ctx.fillText('⭐ Scan to Review Us', off.width / 2, size + 32);
 
     const link = document.createElement('a');
     link.download = `OpinionMatter-${bizName.replace(/\s+/g, '_')}.png`;
-    link.href = offscreen.toDataURL('image/png');
+    link.href = off.toDataURL('image/png');
     link.click();
-
     showToast('⬇ Downloaded! Print & place it.');
   }
 
+  // ─── RESET ───
   function resetForm() {
     document.getElementById('formSection').style.display = 'block';
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('qrcode').innerHTML = '';
-    document.getElementById('bizName').value = '';
+    document.getElementById('bizName').value  = '';
     document.getElementById('reviewUrl').value = '';
-    document.getElementById('tagline').value = '';
+    document.getElementById('tagline').value  = '';
     setStep(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Enter key support
+  // ─── ENTER KEY ───
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && document.getElementById('formSection').style.display !== 'none') {
       generateQR();
+    }
+  });
+
+  // ─── PAGE LOAD — Auto generate if coming back from login ───
+  document.addEventListener('DOMContentLoaded', async () => {
+
+    // ✅ Nav update — login/dashboard button
+    try {
+      const sb = await waitForSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+
+      if (session) {
+        // Logged in — dashboard button dikhao
+        document.getElementById('navLoginBtn').style.display = 'none';
+        document.getElementById('navDashboardBtn').style.display = 'inline-block';
+
+        // Pending QR hai? Auto generate karo
+        const pending = localStorage.getItem('qr_pending');
+        if (pending) {
+          showToast('Welcome back! Generating your QR...');
+          setTimeout(() => doGenerateQR(), 900);
+        }
+      } else {
+        // Logged out — login button dikhao
+        document.getElementById('navLoginBtn').style.display = 'inline-block';
+        document.getElementById('navDashboardBtn').style.display = 'none';
+      }
+    } catch (e) {
+      // Supabase nahi — default state
     }
   });
 </script>
