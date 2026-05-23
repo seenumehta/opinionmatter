@@ -507,7 +507,7 @@
      */
     async function loadDashboardData() {
       try {
-        const userId = userData.profile.id;
+        const userId = userData.id;
 
         // Fetch user profile for business name
         const { data: profile } = await supabase
@@ -677,7 +677,7 @@
                 <div class="review-stars">${stars}</div>
                 <span class="review-date">${dateStr}</span>
               </div>
-              <p class="review-text">${review.text || 'No review text provided.'}</p>
+              <p class="review-text">${review.review_text || 'No review text provided.'}</p>
               <div class="review-footer">
                 <span class="badge ${sentimentClass} review-sentiment">${review.sentiment || 'Neutral'}</span>
                 ${!review.reply ? `<button class="review-reply-btn" onclick="window.location.href='reviews.html'">Reply</button>` : '<span style="font-size: 0.8rem; color: var(--success);">✓ Replied</span>'}

@@ -1,5 +1,5 @@
 /* ============================================================================
-   Authentication Module — Email/Password + Session Management
+   Authentication Module — Fixed Version
    ============================================================================ */
 
 let currentUser = null;
@@ -10,163 +10,188 @@ let authChangeCallbacks = [];
  */
 async function waitForSupabase() {
   let attempts = 0;
-  while ((!window.sbClient) && attempts < 200) {
+  while (!window.sbClient && attempts < 200) {
     await new Promise(resolve => setTimeout(resolve, 25));
     attempts++;
   }
-  
   if (!window.sbClient) {
-    console.error('Supabase not available after 5 seconds');
     throw new Error('Supabase initialization failed');
   }
-  
   return window.sbClient;
 }
-
-// Make globally available
 window.waitForSupabase = waitForSupabase;
 
 /**
- * Sign in with Google using Supabase OAuth
- * Redirects to Google login, then returns to app with session
+ * Sign in with Google OAuth
  */
 async function signInWithGoogle() {
   try {
     const sb = await waitForSupabase();
-    const { data, error } = await sb.auth.signInWithOAuth({
+    const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + '/dashboard.html',
       },
     });
-
     if (error) {
-      console.error('Google sign-in error:', error);
       showToast('Sign-in failed. Please try again.', 'error');
       return false;
     }
     return true;
   } catch (err) {
-    console.error('Unexpected sign-in error:', err);
+    console.error('Sign-in error:', err);
     showToast('An unexpected error occurred.', 'error');
     return false;
   }
 }
 
 /**
- * Sign out user and clear session
+ * Sign in with Email + Password
+ */
+async function signInWithEmail(email, password) {
+  try {
+    const sb = await waitForSupabase();
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      showToast(error.message, 'error');
+      return null;
+    }
+    return data.user;
+  } catch (err) {
+    console.error('Email sign-in error:', err);
+    showToast('Sign-in failed.', 'error');
+    return null;
+  }
+}
+
+/**
+ * Sign up with Email + Password
+ */
+async function signUpWithEmail(email, password, businessName = '') {
+  try {
+    const sb = await waitForSupabase();
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) {
+      showToast(error.message, 'error');
+      return null;
+    }
+    if (data.user) {
+      await createUserProfile(data.user, businessName);
+    }
+    return data.user;
+  } catch (err) {
+    console.error('Sign-up error:', err);
+    showToast('Sign-up failed.', 'error');
+    return null;
+  }
+}
+
+/**
+ * Sign out
  */
 async function signOut() {
   try {
     const sb = await waitForSupabase();
-    const { error } = await sb.auth.signOut();
-    if (error) throw error;
-
+    await sb.auth.signOut();
     currentUser = null;
     localStorage.removeItem('opinionmatter_user');
-    window.location.href = '/login.html';
+    window.location.href = 'login.html'; // ✅ no leading slash
   } catch (err) {
     console.error('Sign-out error:', err);
-    showToast('Failed to sign out. Please try again.', 'error');
+    showToast('Failed to sign out.', 'error');
   }
 }
 
 /**
- * Get current authenticated user
- * Returns null if not logged in
+ * Get current user — FIXED
+ * Profile nahi mili toh bhi user return karta hai
  */
 async function getUser() {
+  // Already cached
   if (currentUser) return currentUser;
 
   try {
     const sb = await waitForSupabase();
-    const {
-      data: { user },
-    } = await sb.auth.getUser();
 
-    if (user) {
-      // Fetch extended user profile from users table
-      const { data: profile, error } = await sb
+    // Supabase se actual session lo
+    const { data: { user }, error } = await sb.auth.getUser();
+
+    // Session nahi hai — genuinely logged out
+    if (error || !user) return null;
+
+    // Profile fetch karo — fail hone pe bhi block mat karo
+    let profile = null;
+    try {
+      const { data } = await sb
         .from('users')
         .select('*')
         .eq('auth_id', user.id)
         .single();
-
-      if (profile) {
-        currentUser = { ...user, profile };
-        localStorage.setItem('opinionmatter_user', JSON.stringify(currentUser));
-        return currentUser;
-      }
+      profile = data;
+    } catch (profileErr) {
+      console.warn('Profile not found in DB, creating...');
     }
-    return null;
+
+    // Profile nahi mili toh abhi banao
+    if (!profile) {
+      profile = await createUserProfile(user);
+    }
+
+    currentUser = { ...user, profile };
+    localStorage.setItem('opinionmatter_user', JSON.stringify(currentUser));
+    return currentUser;
+
   } catch (err) {
-    console.error('Error fetching user:', err);
+    console.error('getUser error:', err);
     return null;
   }
 }
-
-/**
- * Require authentication — redirect to login if not authenticated
- * Call this at the top of every protected page
- */
-async function requireAuth() {
-  const user = await getUser();
-
-  if (!user) {
-    // Redirect to login page
-    window.location.href = '/login.html';
-    return null;
-  }
-
-  return user;
-}
-
-// Expose getUser globally after it's defined
 window.getUser = getUser;
 
 /**
- * Listen for authentication state changes
- * Callback receives { user, event } where event is:
- * 'SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED', etc.
+ * requireAuth — FIXED
+ * Protected pages pe call karo
+ */
+async function requireAuth() {
+  const user = await getUser();
+  if (!user) {
+    window.location.href = 'login.html'; // ✅ no leading slash
+    return null;
+  }
+  return user;
+}
+window.requireAuth = requireAuth;
+
+/**
+ * Auth state change listener
  */
 function onAuthChange(callback) {
   authChangeCallbacks.push(callback);
 
-  // Listen to Supabase auth state changes (if available)
-  if (window.sbClient) {
-    const {
-      data: { subscription },
-    } = window.sbClient.auth.onAuthStateChange((event, session) => {
+  waitForSupabase().then(sb => {
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        currentUser = session.user;
+        currentUser = { ...session.user, profile: currentUser?.profile || null };
         localStorage.setItem('opinionmatter_user', JSON.stringify(currentUser));
       } else {
         currentUser = null;
         localStorage.removeItem('opinionmatter_user');
       }
-
-      // Call all registered callbacks
-      authChangeCallbacks.forEach((cb) => {
-        cb({ user: currentUser, event });
-      });
+      authChangeCallbacks.forEach(cb => cb({ user: currentUser, event }));
     });
-
     return subscription;
-  } else {
-    console.warn('Supabase not yet initialized for auth change listener');
-    return null;
-  }
+  });
 }
 
 /**
- * Check if user is logged in (sync check, may not be accurate)
+ * Sync check — logged in ya nahi
  */
 function isLoggedIn() {
   return !!currentUser || !!localStorage.getItem('opinionmatter_user');
 }
 
 /**
- * Get user profile from database
+ * Profile fetch by userId
  */
 async function getUserProfile(userId) {
   try {
@@ -176,96 +201,91 @@ async function getUserProfile(userId) {
       .select('*')
       .eq('id', userId)
       .single();
-
     if (error) throw error;
     return data;
   } catch (err) {
-    console.error('Error fetching user profile:', err);
+    console.error('getUserProfile error:', err);
     return null;
   }
 }
 
 /**
- * Update user profile in database
+ * Profile update
  */
 async function updateUserProfile(userId, updates) {
   try {
     const sb = await waitForSupabase();
     const { data, error } = await sb
       .from('users')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', userId)
       .select()
       .single();
-
     if (error) throw error;
     return data;
   } catch (err) {
-    console.error('Error updating user profile:', err);
+    console.error('updateUserProfile error:', err);
     showToast('Failed to update profile.', 'error');
     return null;
   }
 }
 
 /**
- * Create user record in database after first sign-up
+ * Profile create — FIXED
+ * Duplicate hone pe crash nahi karta
  */
 async function createUserProfile(authUser, businessName = '') {
   try {
     const sb = await waitForSupabase();
-    const userEmail = authUser.email || authUser.user_metadata?.email;
-    const userName = authUser.user_metadata?.name || userEmail.split('@')[0];
+    const userEmail = authUser.email || authUser.user_metadata?.email || '';
+    const userName = authUser.user_metadata?.name || userEmail.split('@')[0] || 'Business';
 
+    // Pehle check karo exist karta hai kya
+    const { data: existing } = await sb
+      .from('users')
+      .select('*')
+      .eq('auth_id', authUser.id)
+      .single();
+
+    if (existing) return existing; // Already hai — return karo
+
+    // Naya banao
     const { data, error } = await sb
       .from('users')
-      .insert([
-        {
-          auth_id: authUser.id,
-          email: userEmail,
-          business_name: businessName || userName,
-          profile_pic_url: authUser.user_metadata?.avatar_url,
-        },
-      ])
+      .insert([{
+        auth_id: authUser.id,
+        email: userEmail,
+        business_name: businessName || userName,
+        profile_pic_url: authUser.user_metadata?.avatar_url || null,
+      }])
       .select()
       .single();
 
-    if (error) {
-      // User might already exist, that's okay
-      if (error.code !== '23505') {
-        throw error;
-      }
-    }
-
+    if (error && error.code !== '23505') throw error;
     return data;
+
   } catch (err) {
-    console.error('Error creating user profile:', err);
+    console.error('createUserProfile error:', err);
+    return null;
   }
 }
 
 /**
- * Initialize auth on page load
- * Restores session from localStorage if available
+ * Initialize auth — page load pe call karo
  */
 async function initializeAuth() {
-  const savedUser = localStorage.getItem('opinionmatter_user');
-  if (savedUser) {
-    try {
-      currentUser = JSON.parse(savedUser);
-    } catch (e) {
-      localStorage.removeItem('opinionmatter_user');
-    }
+  // LocalStorage se restore karo
+  const saved = localStorage.getItem('opinionmatter_user');
+  if (saved) {
+    try { currentUser = JSON.parse(saved); } 
+    catch (e) { localStorage.removeItem('opinionmatter_user'); }
   }
-
-  // Verify session is still valid
-  const user = await getUser();
-  return user;
+  // Verify with Supabase
+  return await getUser();
 }
 
 /**
- * Show toast notification (must be called after utils.js is loaded)
+ * Toast helper
  */
 function showToast(message, type = 'info') {
   if (typeof window.showToast === 'function') {
