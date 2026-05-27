@@ -2,8 +2,14 @@
    Google Gemini API Integration — AI Review Replies & Sentiment Analysis
    ============================================================================ */
 
-const GEMINI_API_KEY = "AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA"; // Replace with your actual Gemini API key
+// Get API key from environment or use fallback
+const GEMINI_API_KEY = (typeof getEnv === 'function') 
+  ? getEnv('GEMINI_API_KEY', 'AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA')
+  : 'AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA';
+  
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+console.log('🔑 Gemini API Key loaded:', GEMINI_API_KEY.substring(0, 10) + '...');
 
 /**
  * Generate an AI-powered reply to a customer review

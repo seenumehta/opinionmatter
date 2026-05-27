@@ -317,6 +317,7 @@
 
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config-loader.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/gemini.js"></script>
@@ -384,7 +385,10 @@ The review should:
 Start directly with the review, no "Review:" prefix.`;
 
         // Use constants from global scope (loaded from gemini.js)
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA`;
+        const apiKey = (typeof getEnv === 'function')
+          ? getEnv('GEMINI_API_KEY', 'AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA')
+          : 'AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
         console.log('Calling Gemini API:', apiUrl);
         console.log('Prompt:', prompt);
