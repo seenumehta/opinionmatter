@@ -2,7 +2,7 @@
    Google Gemini API Integration — AI Review Replies & Sentiment Analysis
    ============================================================================ */
 
-const GEMINI_API_KEY = 'AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA'; // Add your Gemini API key
+const GEMINI_API_KEY = "AIzaSyCO2VrVU4h9lo8JbcB4y2L42ygJ7DMIIUA"; // Replace with your actual Gemini API key
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 /**
@@ -62,18 +62,22 @@ Please write a professional reply that acknowledges their specific feedback.`;
       }),
     });
 
+    const data = await response.json();
+    console.log('Gemini API Response:', data);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Gemini API error');
+      const error = data.error?.message || `Gemini API error: ${response.status}`;
+      console.error('API Error:', error);
+      throw new Error(error);
     }
 
-    const data = await response.json();
-
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Invalid Gemini response');
+      console.error('Invalid Gemini response structure:', data);
+      throw new Error('Invalid Gemini response - no candidates');
     }
 
     const reply = data.candidates[0].content.parts[0].text.trim();
+    console.log('Generated reply text:', reply);
     return reply;
   } catch (error) {
     console.error('Error generating reply:', error);

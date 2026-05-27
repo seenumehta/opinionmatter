@@ -735,13 +735,20 @@
         btn.innerHTML = '<span class="generating-spinner"></span>Generating...';
 
         const businessName = userData.profile?.business_name || 'Our Business';
+        console.log('Generating reply for:', { reviewText, rating, businessName });
+        
         const generatedReply = await generateReviewReply(reviewText, rating, businessName);
+        console.log('Generated reply:', generatedReply);
+
+        if (!generatedReply) {
+          throw new Error('No reply generated');
+        }
 
         // Show reply in editable form
         showReplyForm(reviewId, generatedReply, btn);
       } catch (error) {
         console.error('Error generating reply:', error);
-        showToast('Failed to generate reply. Please try again.', 'error');
+        showToast('Failed to generate reply: ' + error.message, 'error');
         event.target.disabled = false;
         event.target.innerHTML = '✨ Generate AI Reply';
       }

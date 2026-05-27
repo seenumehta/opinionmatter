@@ -403,14 +403,22 @@ Start directly with the review, no "Review:" prefix.`;
           })
         });
 
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        
         const data = await response.json();
+        console.log('Gemini API Response:', data);
+
+        if (!response.ok) {
+          const errorMsg = data.error?.message || `API Error: ${response.status}`;
+          console.error('API Error:', errorMsg);
+          throw new Error(errorMsg);
+        }
+        
         const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         
         if (generatedText) {
           reviewText.value = generatedText;
           reviewText.style.borderColor = 'var(--accent)';
+        } else {
+          console.warn('No text in response:', data);
         }
       } catch (error) {
         console.error('AI Generation Error:', error);
